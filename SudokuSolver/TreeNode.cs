@@ -21,6 +21,14 @@ namespace SudokuSolver
             this.parent = null;
         }
 
+        public TreeNode(TreeNode t)
+        {
+            this.r = t.r;
+            this.c = t.c;
+            this.lastValue = t.lastValue;
+            this.parent = t.parent;
+        }
+
         public TreeNode getNextNode()
         {
             if (children == null && parent != null)
@@ -45,19 +53,27 @@ namespace SudokuSolver
             return parent;
         }
 
-        public void setChildren(List<TreeNode> children)
+        public void setChildren(List<TreeNode> newChildren)
         {
-            this.children = new List<TreeNode>(children);
-            foreach (TreeNode t in this.children)
+            this.children = new List<TreeNode>();
+            foreach (TreeNode t in newChildren)
             {
-                t.setParent(this);
+                TreeNode newChild = new TreeNode(t);
+                newChild.setParent(this);
+                this.children.Add(newChild);
             }
         }
 
         public void setChildren()
         {
-            this.children = new List<TreeNode>(parent.children);
-            this.children.Remove(this);
+            this.children = new List<TreeNode>();
+            foreach (TreeNode t in parent.children)
+            {
+                TreeNode newChild = new TreeNode(t);
+                newChild.setParent(this);
+                this.children.Add(newChild);
+            }
+
         }
 
         public void setParent(TreeNode parent)

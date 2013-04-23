@@ -182,40 +182,60 @@ namespace SudokuSolver
             node.setChildren(children);
 
             int n = 0;
-            while(n < 60){
+            while(n < 58){
+                
+                // Clear out current square
+                puzzle[node.r, node.c] = -1;
+                
+                // Increment n every time we set something to -1
+                n++;
 
-                if (puzzle[node.r, node.c] != -1)
+                uniqueCheck.setInput(puzzle);
+
+                // If it not uniquely solvable, back up
+                if (uniqueCheck.isUnique(solution))
                 {
-
-                    puzzle[node.r, node.c] = -1;
-                    uniqueCheck.setInput(puzzle);
-                    n++;
-                    if (!uniqueCheck.isUnique(solution))
-                    {
-                        n--;
-                        puzzle[node.r, node.c] = node.lastValue;
-                        node = node.getParent();
-                    }
+                    textBoxes[node.r, node.c].Text = "";
+                    this.Refresh();
+                }
+                else
+                {
+                    // Decrement n every time we undo an operation
+                    puzzle[node.r, node.c] = node.lastValue;
+                    textBoxes[node.r, node.c].Text = node.lastValue + "";
+                    this.Refresh();
+                    n--;
+                    node = node.getParent();
                 }
 
-                // Get the next node, perhaps moving up the tree
+                
+
+                // Make sure we haven't reached the top
+                if (node == null)
+                    break;
+
+                // Randomly pick the next node
+                // If the current node has no more children, back up
+
                 TreeNode nextNode = node.getNextNode();
-                while (nextNode == null)
+                while (nextNode == null && node != null)
                 {
-                    Console.WriteLine("Backtracking");
-                    n--;
                     puzzle[node.r, node.c] = node.lastValue;
+                    textBoxes[node.r, node.c].Text = node.lastValue + "";
+                    this.Refresh();
+                    n--;
                     node = node.getParent();
-                    if (node == null) {
-                        Console.WriteLine("No solutions");
-                        break;
-                    }
                     nextNode = node.getNextNode();
                 }
 
+                // Make sure we haven't reached the top
+                if (node == null)
+                    break;
+
                 node = nextNode;
 
-                Console.WriteLine(n);
+
+                //Console.WriteLine(n);
             }
 
              
