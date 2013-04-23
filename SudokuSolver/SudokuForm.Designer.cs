@@ -35,7 +35,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(12, 447);
+            this.button1.Location = new System.Drawing.Point(117, 447);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
@@ -45,7 +45,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(174, 447);
+            this.button2.Location = new System.Drawing.Point(283, 447);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 1;
@@ -55,7 +55,7 @@
             // 
             // randomButton
             // 
-            this.randomButton.Location = new System.Drawing.Point(93, 447);
+            this.randomButton.Location = new System.Drawing.Point(200, 447);
             this.randomButton.Name = "randomButton";
             this.randomButton.Size = new System.Drawing.Size(75, 23);
             this.randomButton.TabIndex = 2;
@@ -67,7 +67,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(464, 482);
+            this.ClientSize = new System.Drawing.Size(474, 482);
             this.Controls.Add(this.randomButton);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);

@@ -73,7 +73,7 @@ namespace SudokuSolver
                     textBoxes[i, j].MaxLength = 1;
                     textBoxes[i, j].Width = 48;
                     textBoxes[i, j].Height = 48;
-                    textBoxes[i, j].Left += i * 48 + 5;
+                    textBoxes[i, j].Left += i * 52 + 5;
                     textBoxes[i, j].Top += j * 48 + 5;
 
                     this.Controls.Add(textBoxes[i, j]);
@@ -83,22 +83,40 @@ namespace SudokuSolver
             //draw in seperating lines
             Label hLine1 = new Label();
             hLine1.AutoSize = false;
-            hLine1.BorderStyle = BorderStyle.Fixed3D;
+            hLine1.BorderStyle = BorderStyle.FixedSingle;
             hLine1.Height = 2;
-            hLine1.Width = 450;
-            hLine1.Left = 12;
+            hLine1.Width = 464;
+            hLine1.Left = 6;
             hLine1.Top = 146;
 
             Label hLine2 = new Label();
             hLine2.AutoSize = false;
-            hLine2.BorderStyle = BorderStyle.Fixed3D;
+            hLine2.BorderStyle = BorderStyle.FixedSingle;
             hLine2.Height = 2;
-            hLine2.Width = 450;
-            hLine2.Left = 12;
-            hLine2.Top = 300;
+            hLine2.Width = 464;
+            hLine2.Left = 6;
+            hLine2.Top = 290;
+
+            Label vLine1 = new Label();
+            vLine1.AutoSize = false;
+            vLine1.BorderStyle = BorderStyle.FixedSingle;
+            vLine1.Height = 428;
+            vLine1.Width = 2;
+            vLine1.Left = 314;
+            vLine1.Top = 6;
+
+            Label vLine2 = new Label();
+            vLine2.AutoSize = false;
+            vLine2.BorderStyle = BorderStyle.FixedSingle;
+            vLine2.Height = 428;
+            vLine2.Width = 2;
+            vLine2.Left = 158;
+            vLine2.Top = 6;
 
             this.Controls.Add(hLine1);
             this.Controls.Add(hLine2);
+            this.Controls.Add(vLine1);
+            this.Controls.Add(vLine2);
 
         }
 
