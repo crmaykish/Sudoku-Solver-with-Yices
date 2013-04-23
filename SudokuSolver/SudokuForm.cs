@@ -13,11 +13,21 @@ namespace SudokuSolver
 {
     public partial class SudokuForm : Form
     {
+        BackgroundWorker bgWorker;
+
         TextBox[,] textBoxes;
 
         public SudokuForm()
         {
             InitializeComponent();
+
+            bgWorker = new BackgroundWorker();
+            //bgWorker.WorkerSupportsCancellation = true;
+            bgWorker.WorkerReportsProgress = true;
+
+            bgWorker.DoWork += new DoWorkEventHandler(bgWorker_DoWork);
+            bgWorker.ProgressChanged += new ProgressChangedEventHandler(bgWorker_ProgressChanged);
+            bgWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgWorker_Done);
 
             textBoxes = new TextBox[9, 9];
         }
@@ -27,6 +37,196 @@ namespace SudokuSolver
             this.Text = "Sudoku Solver";
 
             setUpSquares();
+        }
+
+        private void updateBoard(int r, int c, int val)
+        {
+            if (val == -1)
+            {
+                textBoxes[r, c].Clear();
+            }
+            else
+            {
+                textBoxes[r, c].Text = val.ToString();
+            }
+        }
+
+        private void bgWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            // update the count box
+            if (e.ProgressPercentage == 100)
+            {
+                countDown.Text = ((int)e.UserState).ToString();
+            }
+            else
+            {
+                Point p = (Point)e.UserState;
+                updateBoard(p.X, p.Y, e.ProgressPercentage);
+            }
+        }
+
+        private void bgWorker_Done(object sender, RunWorkerCompletedEventArgs e)
+        {
+            Console.WriteLine("Thread done!");
+        }
+
+        private void bgWorker_DoWork(object sender, DoWorkEventArgs e){
+
+            List<object> param = (List<object>)e.Argument;
+
+            bool demo = (bool)param[1];
+
+            int[,] seed = new int[9, 9];
+
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    seed[i, j] = -1;
+                }
+            }
+
+            Random rand = new Random();
+            for (int i = 1; i <= 9; i++)
+            {
+                int r = rand.Next(0, 8);
+                int c = rand.Next(0, 8);
+
+                //textBoxes[r, c].Text = i + "";  //bleh
+                seed[r, c] = i;
+
+            }
+
+            Solver solver = new Solver(seed);
+            int[,] solution = solver.solve();
+
+            int[,] puzzle = new int[9, 9];
+            Array.Copy(solution, puzzle, solution.Length);
+
+            if (demo)
+            {
+                for (int i = 0; i < 9; i++)
+                {
+                    for (int j = 0; j < 9; j++)
+                    {
+                        //textBoxes[i, j].Text = puzzle[i, j] + "";
+                        //updateBoard(i, j, puzzle[i, j]);
+                        bgWorker.ReportProgress(puzzle[i, j], new Point(i, j));
+                    }
+                }
+            }
+
+            //this.Refresh();
+
+            // remove random values...
+            //puzzle[0, 0] = -1;
+
+            Solver uniqueCheck = new Solver();
+            // uniqueCheck.
+
+            List<TreeNode> children = new List<TreeNode>();
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    children.Add(new TreeNode(i, j, puzzle[i, j]));
+                }
+            }
+
+            TreeNode node = children[rand.Next(0, children.Count - 1)];
+            children.Remove(node);
+            node.setChildren(children);
+
+            int n = 0;
+            //int limit = slider.Value;
+            //int limit = 50;
+            int limit = 81 - (int)param[0];
+            Console.WriteLine("Starting algorithm with limit: " + limit);
+            while (n < limit)
+            {
+                
+
+                // Clear out current square
+                puzzle[node.r, node.c] = -1;
+
+                // Increment n every time we set something to -1
+                n++;
+
+                uniqueCheck.setInput(puzzle);
+
+                // If it not uniquely solvable, back up
+                if (uniqueCheck.isUnique(solution))
+                {
+                    //textBoxes[node.r, node.c].Text = "";
+                    if (demo)
+                    {
+                        bgWorker.ReportProgress(-1, new Point(node.r, node.c));
+                    }
+                    //this.Refresh();
+                }
+                else
+                {
+                    // Decrement n every time we undo an operation
+                    puzzle[node.r, node.c] = node.lastValue;
+                    //textBoxes[node.r, node.c].Text = node.lastValue + "";
+                    if (demo)
+                    {
+                        bgWorker.ReportProgress(node.lastValue, new Point(node.r, node.c));
+                    }
+                    //this.Refresh();
+                    n--;
+                    node = node.getParent();
+                }
+
+
+
+                // Make sure we haven't reached the top
+                if (node == null)
+                    break;
+
+                // Randomly pick the next node
+                // If the current node has no more children, back up
+
+                TreeNode nextNode = node.getNextNode();
+                while (nextNode == null && node != null)
+                {
+                    puzzle[node.r, node.c] = node.lastValue;
+                    //textBoxes[node.r, node.c].Text = node.lastValue + "";
+                    if (demo)
+                    {
+                        bgWorker.ReportProgress(node.lastValue, new Point(node.r, node.c));
+                    }
+                    //this.Refresh();
+                    n--;
+                    node = node.getParent();
+                    nextNode = node.getNextNode();
+                }
+
+                // Make sure we haven't reached the top
+                if (node == null)
+                    break;
+
+                node = nextNode;
+
+                // return the current count;
+                bgWorker.ReportProgress(100, 81 - n);
+            }
+
+
+            for (int i = 0; i < 9; i++)
+            {
+                for (int j = 0; j < 9; j++)
+                {
+                    if (puzzle[i, j] != -1)
+                        //textBoxes[i, j].Text = puzzle[i, j] + "";
+                        bgWorker.ReportProgress(puzzle[i, j], new Point(i, j));
+                    else
+                    {
+                        //textBoxes[i, j].Text = "";
+                        bgWorker.ReportProgress(-1, new Point(i, j));
+                    }
+                }
+            }
         }
 
         // Submit button - run the Solver and write the results to the text boxes
@@ -48,6 +248,7 @@ namespace SudokuSolver
         private void button2_Click(object sender, EventArgs e)
         {
             clearBoxes();
+            countDown.Clear();
         }
 
         private void clearBoxes(){
@@ -138,139 +339,40 @@ namespace SudokuSolver
 
         private void randomButton_Click(object sender, EventArgs e)
         {
-            int[,] seed = new int[9, 9];
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    seed[i, j] = -1;
-                }
-            }
-
             clearBoxes();
+            List<object> paramList = new List<object>();
+            paramList.Add(slider.Value);
+            paramList.Add(demoCheckBox.Checked);
+            bgWorker.RunWorkerAsync(paramList);
 
-            Random rand = new Random();
-            for (int i = 1; i <= 9; i++)
-            {
-                int r = rand.Next(0, 8);
-                int c = rand.Next(0, 8);
-
-                textBoxes[r, c].Text = i + "";  //bleh
-                seed[r, c] = i;
-                
-            }
-
-            Solver solver = new Solver(seed);
-            int[,] solution = solver.solve();
-
-            int[,] puzzle = new int[9, 9];
-            Array.Copy(solution, puzzle, solution.Length);
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    if (puzzle[i, j] != -1)
-                        textBoxes[i, j].Text = puzzle[i, j] + "";
-                    else
-                        textBoxes[i, j].Text = "";
-                }
-            }
-
-            this.Refresh();
-
-            // remove random values...
-            //puzzle[0, 0] = -1;
-
-            Solver uniqueCheck = new Solver();
-           // uniqueCheck.
-
-            List<TreeNode> children = new List<TreeNode>();
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    children.Add(new TreeNode(i, j, puzzle[i, j]));
-                }
-            }
-
-            TreeNode node = children[rand.Next(0, children.Count - 1)];
-            children.Remove(node);
-            node.setChildren(children);
-
-            int n = 0;
-            while(n < 58){
-                
-                // Clear out current square
-                puzzle[node.r, node.c] = -1;
-                
-                // Increment n every time we set something to -1
-                n++;
-
-                uniqueCheck.setInput(puzzle);
-
-                // If it not uniquely solvable, back up
-                if (uniqueCheck.isUnique(solution))
-                {
-                    textBoxes[node.r, node.c].Text = "";
-                    this.Refresh();
-                }
-                else
-                {
-                    // Decrement n every time we undo an operation
-                    puzzle[node.r, node.c] = node.lastValue;
-                    textBoxes[node.r, node.c].Text = node.lastValue + "";
-                    this.Refresh();
-                    n--;
-                    node = node.getParent();
-                }
-
-                
-
-                // Make sure we haven't reached the top
-                if (node == null)
-                    break;
-
-                // Randomly pick the next node
-                // If the current node has no more children, back up
-
-                TreeNode nextNode = node.getNextNode();
-                while (nextNode == null && node != null)
-                {
-                    puzzle[node.r, node.c] = node.lastValue;
-                    textBoxes[node.r, node.c].Text = node.lastValue + "";
-                    this.Refresh();
-                    n--;
-                    node = node.getParent();
-                    nextNode = node.getNextNode();
-                }
-
-                // Make sure we haven't reached the top
-                if (node == null)
-                    break;
-
-                node = nextNode;
-
-
-                //Console.WriteLine(n);
-            }
-
-             
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    if (puzzle[i, j] != -1)
-                        textBoxes[i, j].Text = puzzle[i, j] + "";
-                    else
-                        textBoxes[i, j].Text = "";
-                }
-            }
         }
 
         private void button3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void demoCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void countDown_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void slider_ValueChanged(object sender, EventArgs e)
+        {
+            sliderLabel.Text = slider.Value.ToString();
+        }
+
+        private void starting_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void slider_Scroll(object sender, EventArgs e)
         {
 
         }
