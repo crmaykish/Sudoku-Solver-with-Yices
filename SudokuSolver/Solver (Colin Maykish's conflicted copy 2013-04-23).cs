@@ -12,61 +12,10 @@ namespace SudokuSolver
         private List<String> lines;
         private int[,] userInput;
 
-        public Solver()
-        {
-            lines = new List<String>();
-        }
-        
         public Solver(int[,] userInput)
         {
             lines = new List<String>();
             this.userInput = userInput;
-        }
-
-        public void setInput(int[,] userInput)
-        {
-            this.userInput = userInput;
-        }
-
-        public bool isUnique(int[,] known)
-        {
-            generateDefines();
-
-            String longAppend = "(assert (or";
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    longAppend += " (not b" + i + j + (known[i, j] - 1) + ")";
-                }
-            }
-
-            longAppend += "))";
-
-            lines.Add(longAppend);
-
-            generateAsserts();
-
-            writeYicesInputFile();
-
-            string[] yicesOutput = runYices();
-            int[,] solution = parseYicesOutput(yicesOutput);
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    //Console.WriteLine(solution[i, j]);
-                    if (solution[i, j] == 0)
-                    {
-                        return true;
-                    }
-                }
-            }
-            
-
-            return false;
         }
 
         public int[,] solve()
@@ -82,10 +31,7 @@ namespace SudokuSolver
             string[] yicesOutput = runYices();
 
             // Parse the solution
-            
-
             return parseYicesOutput(yicesOutput);
-
         }
 
         // Grab the square values from the yices output file
@@ -95,7 +41,6 @@ namespace SudokuSolver
 
             foreach (string s in output)
             {
-                //Console.WriteLine(s);
                 if (s.Contains("true"))
                 {
                     int r = Int32.Parse(s.Substring(4, 1));
@@ -103,16 +48,6 @@ namespace SudokuSolver
                     int v = Int32.Parse(s.Substring(6, 1)) + 1;
 
                     results[r, c] = v;
-
-
-                }
-            }
-
-            for (int i = 0; i < 9; i++)
-            {
-                for (int j = 0; j < 9; j++)
-                {
-                    //Console.WriteLine(results[i, j]);
                 }
             }
 
@@ -141,8 +76,6 @@ namespace SudokuSolver
         private void writeYicesInputFile()
         {
             System.IO.File.WriteAllLines("yices_input.yc", lines);
-            lines.Clear();
-            
         }
 
         // generate the define statements for the yices input file

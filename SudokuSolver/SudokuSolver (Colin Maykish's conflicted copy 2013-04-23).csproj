@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{E19A1D85-CDE9-4204-AB16-CF08BB91EEAD}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SudokuSolver</RootNamespace>
     <AssemblyName>SudokuSolver</AssemblyName>
@@ -49,7 +49,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TreeNode.cs" />
     <Compile Include="Solver.cs" />
     <Compile Include="SudokuForm.cs">
       <SubType>Form</SubType>
